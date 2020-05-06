@@ -25,10 +25,10 @@ async function updateGist(stats) {
     console.error(`Unable to get gist\n${error}`)
   }
 
-  const lines = []
-  for (let i = 0; i < 5; i++) {
-    const data = stats.data.languages[i]
-    const { name, percent, text: time } = data
+  const lines = [];
+  for (let i = 0; i < Math.min(stats.data.languages.length, 5); i++) {
+    const data = stats.data.languages[i];
+    const { name, percent, text: time } = data;
 
     const line = [
       name.padEnd(11),
@@ -39,6 +39,8 @@ async function updateGist(stats) {
 
     lines.push(line.join(' '))
   }
+
+  if (lines.length == 0) return;
 
   try {
     // Get original filename to update that same file
@@ -60,16 +62,16 @@ async function updateGist(stats) {
 function generateBarChart(percent, size) {
   const syms = '░▏▎▍▌▋▊▉█'
 
-  const frac = (size * 8 * percent) / 100
-  const barsFull = Math.floor(frac / 8)
-  const semi = frac % 8
-  const barsEmpty = size - barsFull - 1
+  const frac = Math.floor((size * 8 * percent) / 100);
+  const barsFull = Math.floor(frac / 8);
+  if (barsFull >= size) {
+    return syms.substring(8, 9).repeat(size);
+  }
+  const semi = frac % 8;
 
-  return [
-    syms.substring(8, 9).repeat(barsFull),
-    syms.substring(semi, semi + 1),
-    syms.substring(0, 1).repeat(barsEmpty),
-  ].join('')
+  return [syms.substring(8, 9).repeat(barsFull), syms.substring(semi, semi + 1)]
+    .join("")
+    .padEnd(size, syms.substring(0, 1));
 }
 
 ;(async () => {
